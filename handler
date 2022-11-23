@@ -1,0 +1,33 @@
+//trigger to prevent a user from updating opportunity stagename to closed won or closed lost if it does not have any product on it
+public class trgController
+{
+    public static void trgMethod(List<Opportunity> newList,Map<Id,Opportunity> oldMap)
+{
+    Set<Id> oppIds = new Set<Id>();
+
+    if(newList.size() > 0 && oldMap != null)
+    {
+        for(Opportunity op : newList)
+        {
+            Opportunity oldOp = oldMap.get(op.Id);
+            if(oldOp.isClosed == false && op.isClosed == true)
+            {
+                oppIds.add(op.Id);
+            }
+        }
+    }
+
+    if(oppIds.size() > 0)
+    {
+        List<OpportunityLineItem> oliList = [Select Id,OpportunityId from OpportunityLineItem where OpportunityId IN : oppIds];
+
+        for(Opportunity opp : newList)
+        {
+            if(oliList.size() == 0)
+            {
+                opp.addError('You cannot close this opportunity because this opportunity does not have any product on it');
+            }
+        }
+    }
+}
+}
